@@ -7,37 +7,69 @@
  * of the License, or (at your option) any later version.
  */
 
+#ifdef _AIX
+#pragma alloca
+#endif
+
+#include <config.h>
 #include "fgetdynamic.h"
 #include <stdlib.h>
+
+#if HAVE_ALLOCA_H
+#include <alloca.h>
+#elif defined(__GNUC__)
+#ifndef alloca
+#define alloca __builtin_alloca
+#endif
+#endif
 
 int fgetmalloc_len;
 
 char *fgetmalloc(FILE *handle)
 {
-    GString *line = g_string_new(NULL);
+char *pnt, *pnt2;
+struct alloc_bytechain *bytechain_root=NULL, *bytechain_current=NULL;
+int ch;
 
-    for (;;) {
-        int ch = fgetc(handle);
-        if (ch == EOF || ch == 0x00 || ch == '\n' || ch == '\r') {
-            if (ch > 0 && line->len == 0) {
-                continue; // skip leading CRs and LFs
-            } else {
-                break;
-            }
-        }
+fgetmalloc_len=0;
 
-        g_string_append_c(line, ch);
-    }
+for(;;)
+	{
+	ch=fgetc(handle);
+	if((ch==EOF)||(ch==0x00)||(ch=='\n')||(ch=='\r')) break;
+	fgetmalloc_len++;
+	if(bytechain_current)
+		{
+		bytechain_current->next=alloca(sizeof(struct alloc_bytechain));
+		bytechain_current=bytechain_current->next;
+		bytechain_current->val=(char)ch;
+		bytechain_current->next=NULL;
+		}
+		else
+		{
+		bytechain_root=bytechain_current=alloca(sizeof(struct alloc_bytechain));
+		bytechain_current->val=(char)ch;
+		bytechain_current->next=NULL;
+		}
+	}
 
-    fgetmalloc_len = line->len;
+if(!fgetmalloc_len)
+	{
+	return(NULL);
+	}
+	else
+	{
+	pnt=pnt2=(char *)malloc(fgetmalloc_len+1);
+	while(bytechain_root)
+		{
+		*(pnt2++)=bytechain_root->val;
+		bytechain_root=bytechain_root->next;
+		}
+	*(pnt2)=0;
 
-    char *ret = NULL;
-    if (fgetmalloc_len > 0) {
-        ret = malloc(fgetmalloc_len + 1);
-        memcpy(ret, line->str, fgetmalloc_len + 1);
-    }
+	return(pnt);
+	}
 
-    g_string_free(line, TRUE);
 
-    return ret;
 }
+

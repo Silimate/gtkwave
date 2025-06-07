@@ -36,7 +36,7 @@
 #endif
 
 #ifndef _AIX
-#ifdef HAVE_GETOPT_H
+#if HAVE_GETOPT_H
 #include <getopt.h>
 #endif
 #endif
@@ -59,8 +59,8 @@ typedef struct HistEnt	 *hptr;
 typedef struct HistEnt
 {
 hptr next;	      /* next transition in history */
-GwTime time;        /* time of transition */
-GwTime previous_width; /* to avoid thrashing */
+TimeType time;        /* time of transition */
+TimeType previous_width; /* to avoid thrashing */
 
 union
   {
@@ -136,7 +136,7 @@ struct queuedevent
 {
 struct queuedevent *next;
 struct vcdsymbol *sym;
-GwTime last_event_time;    /* make +1 == 0 if there's not an event there too */
+TimeType last_event_time;    /* make +1 == 0 if there's not an event there too */
 };
 
 
@@ -146,7 +146,7 @@ int hash(char *s);
 int sigcmp(char *, char *);
 void quicksort(struct symbol **, int, int);
 
-GwTime vcd_main(char *fname, char *lxname);
+TimeType vcd_main(char *fname, char *lxname);
 void append_vcd_slisthier(char *str);
 
 #endif

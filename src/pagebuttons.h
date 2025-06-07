@@ -14,3 +14,4 @@ void service_left_page(GtkWidget *text, gpointer data);
 void service_right_page(GtkWidget *text, gpointer data);
 
 #endif
+

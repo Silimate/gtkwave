@@ -32,7 +32,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "v2l_debug.h"
-#include <lxt_write.h>
+#include "lxt_write.h"
 
 #ifndef _MSC_VER
 #include <unistd.h>
@@ -50,8 +50,8 @@ typedef struct HistEnt	 *hptr;
 typedef struct HistEnt
 {
 hptr next;	      /* next transition in history */
-GwTime time;        /* time of transition */
-GwTime previous_width; /* to avoid thrashing */
+TimeType time;        /* time of transition */
+TimeType previous_width; /* to avoid thrashing */
 
 union
   {
@@ -127,7 +127,7 @@ struct queuedevent
 {
 struct queuedevent *next;
 struct vcdsymbol *sym;
-GwTime last_event_time;    /* make +1 == 0 if there's not an event there too */
+TimeType last_event_time;    /* make +1 == 0 if there's not an event there too */
 };
 
 
@@ -137,7 +137,7 @@ int hash(char *s);
 int sigcmp(char *, char *);
 void quicksort(struct symbol **, int, int);
 
-GwTime vcd_main(char *fname, char *lxname, int dostats, int doclock, int dochange, int dodict, int linear);
+TimeType vcd_main(char *fname, char *lxname, int dostats, int doclock, int dochange, int dodict, int linear);
 void append_vcd_slisthier(char *str);
 
 #endif

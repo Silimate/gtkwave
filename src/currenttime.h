@@ -7,7 +7,6 @@
  * of the License, or (at your option) any later version.
  */
 
-#include "debug.h"
 #include "globals.h"
 
 #ifndef CURRENTTIME_H
@@ -24,15 +23,27 @@
 #define WAVE_INF_SCALING (0.5)
 #define WAVE_SI_UNITS " munpfaz"
 
+struct blackout_region_t
+{
+struct blackout_region_t *next;
+TimeType bstart, bend;
+};
+
+
 /* currenttime.c protos */
 
-void update_time_box(void);
-void update_currenttime(GwTime val);
-void reformat_time(char *buf, GwTime val, GwTimeDimension dim);
-void reformat_time_simple(char *buf, GwTime val, char dim);
-GwTime unformat_time(const char *buf, char dim);
+void fractional_timescale_fix(char *);
+void update_markertime(TimeType val);
+void update_maxtime(TimeType val);
+void update_basetime(TimeType val);
+void update_currenttime(TimeType val);
+void update_maxmarker_labels(void);
+void reformat_time(char *buf, TimeType val, char dim);
+void reformat_time_simple(char *buf, TimeType val, char dim);
+TimeType unformat_time(const char *buf, char dim);
 void time_trunc_set(void);
-GwTime time_trunc(GwTime t);
+TimeType time_trunc(TimeType t);
+void exponent_to_time_scale(signed char scale);
 
 /* other protos / definitions */
 
@@ -42,10 +53,13 @@ GwTime time_trunc(GwTime t);
 #include "fetchbuttons.h"
 #include "file.h"
 #include "fonts.h"
+#include "help.h"
+#include "interp.h"
 #include "logfile.h"
 #include "markerbox.h"
 #include "menu.h"
 #include "mouseover.h"
+#include "mouseover_sigs.h"
 #include "pagebuttons.h"
 #include "renderopt.h"
 #include "search.h"
@@ -58,7 +72,10 @@ GwTime time_trunc(GwTime t);
 #include "timeentry.h"
 #include "tree.h"
 #include "treesearch.h"
+#include "vcd_partial.h"
 #include "wavewindow.h"
 #include "zoombuttons.h"
+#include "hiersearch.h"
 
 #endif
+

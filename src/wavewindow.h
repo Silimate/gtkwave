@@ -11,28 +11,23 @@
 #define WAVE_WAVEWINDOW_H
 
 void button_press_release_common(void);
-void UpdateSigValue(GwTrace *t);
+void UpdateSigValue(Trptr t);
 void MaxSignalLength(void);
-void MaxSignalLength_2(
-    char dirty_kick); /* used to resize but not fully recalculate like MaxSignalLength() */
+void MaxSignalLength_2(char dirty_kick); /* used to resize but not fully recalculate like MaxSignalLength() */
 
-void populateBuffer(GwTrace *t, char *altname, char *buf);
+void populateBuffer(Trptr t, char *altname, char* buf);
 void calczoom(double z0);
 void make_sigarea_gcs(GtkWidget *widget);
+void force_screengrab_gcs(void);
+void force_normal_gcs(void);
+gint wavearea_configure_event(GtkWidget *widget, GdkEventConfigure *event);
 
-void XXX_gdk_draw_line(cairo_t *cr, GwColor color, gint _x1, gint _y1, gint _x2, gint _y2);
-void XXX_gdk_draw_rectangle(cairo_t *cr,
-                            GwColor color,
-                            gboolean filled,
-                            gint _x1,
-                            gint _y1,
-                            gint _w,
-                            gint _h);
-void XXX_gdk_set_color(cairo_t *cr, GwColor color);
-void XXX_gdk_draw_line2(cairo_t *cr, gint _x1, gint _y1, gint _x2, gint _y2);
+void XXX_gdk_draw_line(cairo_t *cr, wave_rgb_t gc, gint _x1, gint _y1, gint _x2, gint _y2);
+void XXX_gdk_draw_rectangle(cairo_t *cr, wave_rgb_t gc, gboolean filled, gint _x1, gint _y1, gint _w, gint _h);
 
 #ifdef WAVE_GTK3_SIZE_ALLOCATE_WORKAROUND_WAVE_VSLIDER
 void service_vslider(GtkWidget *text, gpointer data);
 #endif
 
 #endif
+

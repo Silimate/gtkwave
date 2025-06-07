@@ -32,3 +32,4 @@ gboolean in_main_iteration(void);
 gboolean ignore_context_swap(void);
 
 #endif
+

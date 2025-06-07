@@ -10,6 +10,8 @@
 #ifndef WAVE_FILESEL_H
 #define WAVE_FILESEL_H
 
-void fileselbox(const char *title, char **filesel_path, GCallback ok_func, GCallback notok_func, const char *pattn, int is_writemode);
+void fileselbox_old(char *title, char **filesel_path, GCallback ok_func, GCallback notok_func, char *pattn, int is_writemode);
+void fileselbox(char *title, char **filesel_path, GCallback ok_func, GCallback notok_func, char *pattn, int is_writemode);
 
 #endif
+

@@ -12,6 +12,7 @@
 #include "gtk23compat.h"
 #include "strace.h"
 #include "currenttime.h"
+#include "hierpack.h"
 
 #define WV_STRACE_CTX "strace_ctx"
 
@@ -22,17 +23,17 @@
 /* need to do this at top of every entry point function where a signal is connected */
 #define GET_WV_STRACE_CURWIN(x) GLOBALS->strace_ctx = g_object_get_data(G_OBJECT(x), WV_STRACE_CTX)
 
-static const char *logical[] = {"AND", "OR", "XOR", "NAND", "NOR", "XNOR"};
+static char *logical[] = {"AND", "OR", "XOR", "NAND", "NOR", "XNOR"};
 
-static const char *stype[WAVE_STYPE_COUNT] = {"Don't Care",
-                                              "High",
-                                              "Z (Mid)",
-                                              "X",
-                                              "Low",
-                                              "String",
-                                              "Rising Edge",
-                                              "Falling Edge",
-                                              "Any Edge"};
+static char *stype[WAVE_STYPE_COUNT] = {"Don't Care",
+                                        "High",
+                                        "Z (Mid)",
+                                        "X",
+                                        "Low",
+                                        "String",
+                                        "Rising Edge",
+                                        "Falling Edge",
+                                        "Any Edge"};
 
 /*
  * naive nonoptimized case insensitive strstr
@@ -63,11 +64,11 @@ char *strstr_i(char *hay, char *needle)
 /*
  * trap timescale overflows
  */
-GwTime strace_adjust(GwTime a, GwTime b)
+TimeType strace_adjust(TimeType a, TimeType b)
 {
-    GwTime res = a + b;
+    TimeType res = a + b;
 
-    if (b > GW_TIME_CONSTANT(0) && res < a) {
+    if (b > LLDescriptor(0) && res < a) {
         return MAX_HISTENT_TIME;
     }
 
@@ -188,7 +189,7 @@ static void end_clicked(GtkComboBox *widget, gpointer user_data)
 
 static void enter_callback(GtkWidget *widget, gpointer strace_tmp)
 {
-    const gchar *entry_text;
+    G_CONST_RETURN gchar *entry_text;
     struct strace *s;
     int i, len;
 
@@ -329,7 +330,7 @@ void tracesearchbox(const char *title, GCallback func, gpointer data)
     GtkWidget *button1, *button1a, *button1b, *button1c, *button2, *scrolled_win, *frame,
         *separator;
     GtkSizeGroup *label_group;
-    GwTrace *t;
+    Trptr t;
     int i;
     int numtraces;
 
@@ -363,28 +364,32 @@ void tracesearchbox(const char *title, GCallback func, gpointer data)
 
     gtk_window_set_title(GTK_WINDOW(GLOBALS->strace_ctx->window_strace_c_10), title);
     gtk_widget_set_size_request(GTK_WIDGET(GLOBALS->strace_ctx->window_strace_c_10), 420, -1);
-    gtkwave_signal_connect(GLOBALS->strace_ctx->window_strace_c_10,
+    gtkwave_signal_connect(XXX_GTK_OBJECT(GLOBALS->strace_ctx->window_strace_c_10),
                            "delete_event",
                            (GCallback)destroy_callback,
                            NULL);
     WV_STRACE_CURWIN(GLOBALS->strace_ctx->window_strace_c_10);
 
-    vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 12);
+    vbox = XXX_gtk_vbox_new(FALSE, 12);
     gtk_container_add(GTK_CONTAINER(GLOBALS->strace_ctx->window_strace_c_10), vbox);
+#if GTK_CHECK_VERSION(3, 0, 0)
     gtk_container_set_border_width(GTK_CONTAINER(GLOBALS->strace_ctx->window_strace_c_10), 12);
+#endif
     gtk_widget_show(vbox);
 
-    vbox_g = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    vbox_g = XXX_gtk_vbox_new(FALSE, 0);
     gtk_widget_show(vbox_g);
 
     frame = gtk_frame_new(NULL);
     gtk_widget_show(frame);
 
-    small_hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    small_hbox = XXX_gtk_hbox_new(FALSE, 0);
     gtk_widget_show(small_hbox);
 
     label = gtk_label_new("Logical Operation");
+#if GTK_CHECK_VERSION(3, 0, 0)
     gtk_label_set_xalign(GTK_LABEL(label), 0.0);
+#endif
     gtk_widget_show(label);
     gtk_box_pack_start(GTK_BOX(small_hbox), label, TRUE, TRUE, 0);
 
@@ -413,7 +418,11 @@ void tracesearchbox(const char *title, GCallback func, gpointer data)
                                    GTK_POLICY_AUTOMATIC);
     gtk_widget_show(scrolled_win);
     gtk_container_add(GTK_CONTAINER(frame), scrolled_win);
+#if GTK_CHECK_VERSION(3, 0, 0)
     gtk_box_pack_start(GTK_BOX(vbox), frame, TRUE, TRUE, 0);
+#else
+    gtk_container_add(GTK_CONTAINER(vbox), frame);
+#endif
 
     for (t = GLOBALS->traces.first; t; t = t->t_next) {
         struct strace *s;
@@ -424,7 +433,7 @@ void tracesearchbox(const char *title, GCallback func, gpointer data)
         }
 
         if (numtraces > 0) {
-            separator = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
+            separator = XXX_gtk_hseparator_new();
             gtk_widget_show(separator);
             gtk_box_pack_start(GTK_BOX(vbox_g), separator, FALSE, FALSE, 0);
         }
@@ -440,16 +449,20 @@ void tracesearchbox(const char *title, GCallback func, gpointer data)
         GLOBALS->strace_ctx->straces = s;
         s->trace = t;
 
-        small_hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
+        small_hbox = XXX_gtk_hbox_new(FALSE, 6);
         gtk_widget_show(small_hbox);
+#if GTK_CHECK_VERSION(3, 0, 0)
         gtk_container_set_border_width(GTK_CONTAINER(small_hbox), 6);
+#endif
 
         label = gtk_label_new(t->name);
         gtk_widget_show(label);
+#if GTK_CHECK_VERSION(3, 0, 0)
         gtk_label_set_xalign(GTK_LABEL(label), 0.0);
         gtk_widget_set_margin_top(label, 6);
         gtk_widget_set_margin_start(label, 6);
         gtk_widget_set_margin_end(label, 6);
+#endif
         gtk_box_pack_start(GTK_BOX(vbox_g), label, FALSE, FALSE, 0);
 
         combo_box = gtk_combo_box_text_new();
@@ -464,8 +477,8 @@ void tracesearchbox(const char *title, GCallback func, gpointer data)
         gtk_box_pack_start(GTK_BOX(small_hbox), combo_box, FALSE, TRUE, 0);
 
         entry = X_gtk_entry_new_with_max_length(257); /* %+256ch */
-        gtkwave_signal_connect(entry, "activate", G_CALLBACK(enter_callback), s);
-        gtkwave_signal_connect(entry, "changed", G_CALLBACK(enter_callback), s);
+        gtkwave_signal_connect(XXX_GTK_OBJECT(entry), "activate", G_CALLBACK(enter_callback), s);
+        gtkwave_signal_connect(XXX_GTK_OBJECT(entry), "changed", G_CALLBACK(enter_callback), s);
         WV_STRACE_CURWIN(entry);
 
         gtk_box_pack_start(GTK_BOX(small_hbox), entry, TRUE, TRUE, 0);
@@ -473,7 +486,11 @@ void tracesearchbox(const char *title, GCallback func, gpointer data)
         gtk_box_pack_start(GTK_BOX(vbox_g), small_hbox, FALSE, FALSE, 0);
     }
 
+#if GTK_CHECK_VERSION(3, 0, 0)
     gtk_container_add(GTK_CONTAINER(scrolled_win), vbox_g); /* removes gtk3 deprecated warning */
+#else
+    gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(scrolled_win), vbox_g);
+#endif
 
     label_group = gtk_size_group_new(GTK_SIZE_GROUP_HORIZONTAL);
 
@@ -481,10 +498,12 @@ void tracesearchbox(const char *title, GCallback func, gpointer data)
     {
         GtkWidget *time_range_hbox;
 
-        time_range_hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 12);
+        time_range_hbox = XXX_gtk_hbox_new(FALSE, 12);
 
         label = gtk_label_new("Time range");
+#if GTK_CHECK_VERSION(3, 0, 0)
         gtk_label_set_xalign(GTK_LABEL(label), 0.0);
+#endif
         gtk_box_pack_start(GTK_BOX(time_range_hbox), label, TRUE, TRUE, 0);
         gtk_size_group_add_widget(label_group, label);
 
@@ -506,15 +525,19 @@ void tracesearchbox(const char *title, GCallback func, gpointer data)
     } while (0);
 
     /* add mark count GUI element */
-    hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 12);
+    hbox = XXX_gtk_hbox_new(FALSE, 12);
 
     label = gtk_label_new("Beg/End Marks");
+#if GTK_CHECK_VERSION(3, 0, 0)
     gtk_label_set_xalign(GTK_LABEL(label), 0.0);
+#endif
     gtk_size_group_add_widget(label_group, label);
     gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, FALSE, 0);
 
     GLOBALS->strace_ctx->ptr_mark_count_label_strace_c_1 = gtk_label_new("");
+#if GTK_CHECK_VERSION(3, 0, 0)
     gtk_label_set_xalign(GTK_LABEL(GLOBALS->strace_ctx->ptr_mark_count_label_strace_c_1), 0.0);
+#endif
     gtk_box_pack_start(GTK_BOX(hbox),
                        GLOBALS->strace_ctx->ptr_mark_count_label_strace_c_1,
                        TRUE,
@@ -525,49 +548,75 @@ void tracesearchbox(const char *title, GCallback func, gpointer data)
     gtk_widget_show_all(hbox);
     gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
 
-    hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
+    hbox = XXX_gtk_hbox_new(FALSE, 6);
     gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
     gtk_widget_show(hbox);
 
     button1 = gtk_button_new_with_label("Fwd");
     gtk_widget_set_size_request(button1, 75, -1);
-    gtkwave_signal_connect(button1, "clicked", G_CALLBACK(forwards_callback), NULL);
+    gtkwave_signal_connect(XXX_GTK_OBJECT(button1), "clicked", G_CALLBACK(forwards_callback), NULL);
     WV_STRACE_CURWIN(button1);
     gtk_widget_show(button1);
+#if GTK_CHECK_VERSION(3, 0, 0)
     gtk_box_pack_start(GTK_BOX(hbox), button1, TRUE, TRUE, 0);
+#else
+    gtk_container_add(GTK_CONTAINER(hbox), button1);
+#endif
     gtk_widget_set_can_default(button1, TRUE);
-    gtkwave_signal_connect_object(button1, "realize", (GCallback)gtk_widget_grab_default, button1);
+    gtkwave_signal_connect_object(XXX_GTK_OBJECT(button1),
+                                  "realize",
+                                  (GCallback)gtk_widget_grab_default,
+                                  XXX_GTK_OBJECT(button1));
 
     button1a = gtk_button_new_with_label("Bkwd");
     gtk_widget_set_size_request(button1a, 75, -1);
-    gtkwave_signal_connect(button1a, "clicked", G_CALLBACK(backwards_callback), NULL);
+    gtkwave_signal_connect(XXX_GTK_OBJECT(button1a),
+                           "clicked",
+                           G_CALLBACK(backwards_callback),
+                           NULL);
     WV_STRACE_CURWIN(button1a);
     gtk_widget_show(button1a);
+#if GTK_CHECK_VERSION(3, 0, 0)
     gtk_box_pack_start(GTK_BOX(hbox), button1a, TRUE, TRUE, 0);
+#else
+    gtk_container_add(GTK_CONTAINER(hbox), button1a);
+#endif
     gtk_widget_set_can_default(button1a, TRUE);
 
     button1b = gtk_button_new_with_label("Mark");
     gtk_widget_set_size_request(button1b, 75, -1);
-    gtkwave_signal_connect(button1b, "clicked", G_CALLBACK(mark_callback), NULL);
+    gtkwave_signal_connect(XXX_GTK_OBJECT(button1b), "clicked", G_CALLBACK(mark_callback), NULL);
     WV_STRACE_CURWIN(button1b);
     gtk_widget_show(button1b);
+#if GTK_CHECK_VERSION(3, 0, 0)
     gtk_box_pack_start(GTK_BOX(hbox), button1b, TRUE, TRUE, 0);
+#else
+    gtk_container_add(GTK_CONTAINER(hbox), button1b);
+#endif
     gtk_widget_set_can_default(button1b, TRUE);
 
     button1c = gtk_button_new_with_label("Clear");
     gtk_widget_set_size_request(button1c, 75, -1);
-    gtkwave_signal_connect(button1c, "clicked", G_CALLBACK(clear_callback), NULL);
+    gtkwave_signal_connect(XXX_GTK_OBJECT(button1c), "clicked", G_CALLBACK(clear_callback), NULL);
     WV_STRACE_CURWIN(button1c);
     gtk_widget_show(button1c);
+#if GTK_CHECK_VERSION(3, 0, 0)
     gtk_box_pack_start(GTK_BOX(hbox), button1c, TRUE, TRUE, 0);
+#else
+    gtk_container_add(GTK_CONTAINER(hbox), button1c);
+#endif
     gtk_widget_set_can_default(button1c, TRUE);
 
     button2 = gtk_button_new_with_label("Exit");
     gtk_widget_set_size_request(button2, 75, -1);
-    gtkwave_signal_connect(button2, "clicked", G_CALLBACK(destroy_callback), NULL);
+    gtkwave_signal_connect(XXX_GTK_OBJECT(button2), "clicked", G_CALLBACK(destroy_callback), NULL);
     WV_STRACE_CURWIN(button2);
     gtk_widget_show(button2);
+#if GTK_CHECK_VERSION(3, 0, 0)
     gtk_box_pack_start(GTK_BOX(hbox), button2, TRUE, TRUE, 0);
+#else
+    gtk_container_add(GTK_CONTAINER(hbox), button2);
+#endif
     gtk_widget_set_can_default(button2, TRUE);
 
     gtk_widget_show(GLOBALS->strace_ctx->window_strace_c_10);
@@ -579,20 +628,25 @@ void tracesearchbox(const char *title, GCallback func, gpointer data)
 static void strace_search_2(int direction, int is_last_iteration)
 {
     struct strace *s;
-    GwTime basetime, maxbase, sttim, fintim;
-    GwTrace *t;
+    TimeType basetime, maxbase, sttim, fintim;
+    Trptr t;
     int totaltraces, passcount;
     int whichpass;
-    GwTime middle = 0, width;
+    TimeType middle = 0, width;
 
-    GwMarker *primary_marker = gw_project_get_primary_marker(GLOBALS->project);
-    if (gw_marker_is_enabled(primary_marker)) {
-        basetime = gw_marker_get_position(primary_marker);
-    } else {
-        if (direction == STRACE_BACKWARD) {
+    if (direction == STRACE_BACKWARD) /* backwards */
+    {
+        if (GLOBALS->tims.marker < 0) {
             basetime = MAX_HISTENT_TIME;
         } else {
+            basetime = GLOBALS->tims.marker;
+        }
+    } else /* go forwards */
+    {
+        if (GLOBALS->tims.marker < 0) {
             basetime = GLOBALS->tims.first;
+        } else {
+            basetime = GLOBALS->tims.marker;
         }
     }
 
@@ -608,10 +662,10 @@ static void strace_search_2(int direction, int is_last_iteration)
                 t = s->trace;
                 GLOBALS->shift_timebase = t->shift;
                 if (!(t->vector)) {
-                    GwHistEnt *h;
-                    GwHistEnt **hp;
-                    GwUTime utt;
-                    GwTime tt;
+                    hptr h;
+                    hptr *hp;
+                    UTimeType utt;
+                    TimeType tt;
 
                     /* h= */ bsearch_node(t->n.nd, basetime - t->shift); /* scan-build */
                     hp = GLOBALS->max_compare_index;
@@ -626,10 +680,10 @@ static void strace_search_2(int direction, int is_last_iteration)
                     if (tt > maxbase)
                         maxbase = tt;
                 } else {
-                    GwVectorEnt *v;
-                    GwVectorEnt **vp;
-                    GwUTime utt;
-                    GwTime tt;
+                    vptr v;
+                    vptr *vp;
+                    UTimeType utt;
+                    TimeType tt;
 
                     /* v= */ bsearch_vector(t->n.vec, basetime - t->shift); /* scan-build */
                     vp = GLOBALS->vmax_compare_index;
@@ -655,14 +709,14 @@ static void strace_search_2(int direction, int is_last_iteration)
                 t = s->trace;
                 GLOBALS->shift_timebase = t->shift;
                 if (!(t->vector)) {
-                    GwHistEnt *h;
-                    GwUTime utt;
-                    GwTime tt;
+                    hptr h;
+                    UTimeType utt;
+                    TimeType tt;
 
                     h = bsearch_node(t->n.nd, basetime - t->shift);
                     while (h->next && h->time == h->next->time)
                         h = h->next;
-                    if ((whichpass) || gw_marker_is_enabled(primary_marker))
+                    if ((whichpass) || (GLOBALS->tims.marker >= 0))
                         h = h->next;
                     if (!h)
                         return;
@@ -672,14 +726,14 @@ static void strace_search_2(int direction, int is_last_iteration)
                     if (tt < maxbase)
                         maxbase = tt;
                 } else {
-                    GwVectorEnt *v;
-                    GwUTime utt;
-                    GwTime tt;
+                    vptr v;
+                    UTimeType utt;
+                    TimeType tt;
 
                     v = bsearch_vector(t->n.vec, basetime - t->shift);
                     while (v->next && v->time == v->next->time)
                         v = v->next;
-                    if ((whichpass) || gw_marker_is_enabled(primary_marker))
+                    if ((whichpass) || (GLOBALS->tims.marker >= 0))
                         v = v->next;
                     if (!v)
                         return;
@@ -708,13 +762,11 @@ static void strace_search_2(int direction, int is_last_iteration)
                     while (s->his.h->next && s->his.h->time == s->his.h->next->time)
                         s->his.h = s->his.h->next;
                 }
-
-                GwBit h_val = s->his.h->v.h_val;
                 if (t->flags & TR_INVERT) {
-                    h_val = gw_bit_invert(h_val);
+                    str[0] = AN_STR_INV[s->his.h->v.h_val];
+                } else {
+                    str[0] = AN_STR[s->his.h->v.h_val];
                 }
-
-                str[0] = gw_bit_to_char(h_val);
                 str[1] = 0x00;
 
                 switch (s->value) {
@@ -799,9 +851,13 @@ static void strace_search_2(int direction, int is_last_iteration)
                             s->his.h = s->his.h->next;
                         }
                     }
-                    if (s->his.h->flags & GW_HIST_ENT_FLAG_REAL) {
-                        if (!(s->his.h->flags & GW_HIST_ENT_FLAG_STRING)) {
+                    if (s->his.h->flags & HIST_REAL) {
+                        if (!(s->his.h->flags & HIST_STRING)) {
+#ifdef WAVE_HAS_H_DOUBLE
                             chval = convert_ascii_real(t, &s->his.h->v.h_double);
+#else
+                            chval = convert_ascii_real(t, (double *)s->his.h->v.h_vector);
+#endif
                         } else {
                             chval = convert_ascii_string((char *)s->his.h->v.h_vector);
                             chval2 = chval;
@@ -902,7 +958,7 @@ static void strace_search_2(int direction, int is_last_iteration)
         if ((maxbase < sttim) || (maxbase > fintim))
             return;
 
-        DEBUG(printf("Maxbase: %" GW_TIME_FORMAT ", total traces: %d\n", maxbase, totaltraces));
+        DEBUG(printf("Maxbase: " TTFormat ", total traces: %d\n", maxbase, totaltraces));
         s = GLOBALS->strace_ctx->straces;
         passcount = 0;
         while (s) {
@@ -942,17 +998,15 @@ static void strace_search_2(int direction, int is_last_iteration)
         basetime = maxbase;
     }
 
-    // TODO: don't use sentinel values for disabled values
-    gw_marker_set_position(primary_marker, maxbase);
-    gw_marker_set_enabled(primary_marker, maxbase >= 0);
-
+    GLOBALS->tims.marker = maxbase;
     if (is_last_iteration) {
-        update_time_box();
+        update_markertime(GLOBALS->tims.marker);
 
-        width = (GwTime)(((gdouble)GLOBALS->wavewidth) * GLOBALS->nspx);
-        if ((maxbase < GLOBALS->tims.start) || (maxbase >= GLOBALS->tims.start + width)) {
-            if ((maxbase < 0) || (maxbase < GLOBALS->tims.first) ||
-                (maxbase > GLOBALS->tims.last)) {
+        width = (TimeType)(((gdouble)GLOBALS->wavewidth) * GLOBALS->nspx);
+        if ((GLOBALS->tims.marker < GLOBALS->tims.start) ||
+            (GLOBALS->tims.marker >= GLOBALS->tims.start + width)) {
+            if ((GLOBALS->tims.marker < 0) || (GLOBALS->tims.marker < GLOBALS->tims.first) ||
+                (GLOBALS->tims.marker > GLOBALS->tims.last)) {
                 if (GLOBALS->tims.end > GLOBALS->tims.last)
                     GLOBALS->tims.end = GLOBALS->tims.last;
                 middle = (GLOBALS->tims.start / 2) + (GLOBALS->tims.end / 2);
@@ -960,7 +1014,7 @@ static void strace_search_2(int direction, int is_last_iteration)
                     middle++;
                 }
             } else {
-                middle = maxbase;
+                middle = GLOBALS->tims.marker;
             }
 
             GLOBALS->tims.start = time_trunc(middle - (width / 2));
@@ -993,11 +1047,11 @@ void strace_search(int direction)
 /*
  * strace forward to make the timetrace
  */
-GwTime strace_timetrace(GwTime basetime, int notfirst)
+TimeType strace_timetrace(TimeType basetime, int notfirst)
 {
     struct strace *s;
-    GwTime maxbase, fintim;
-    GwTrace *t;
+    TimeType maxbase, fintim;
+    Trptr t;
     int totaltraces, passcount;
     int whichpass;
 
@@ -1010,9 +1064,9 @@ GwTime strace_timetrace(GwTime basetime, int notfirst)
             t = s->trace;
             GLOBALS->shift_timebase = t->shift;
             if (!(t->vector)) {
-                GwHistEnt *h;
-                GwUTime utt;
-                GwTime tt;
+                hptr h;
+                UTimeType utt;
+                TimeType tt;
 
                 h = bsearch_node(t->n.nd, basetime - t->shift);
                 s->his.h = h;
@@ -1030,9 +1084,9 @@ GwTime strace_timetrace(GwTime basetime, int notfirst)
                 if (tt < maxbase)
                     maxbase = tt;
             } else {
-                GwVectorEnt *v;
-                GwUTime utt;
-                GwTime tt;
+                vptr v;
+                UTimeType utt;
+                TimeType tt;
 
                 v = bsearch_vector(t->n.vec, basetime - t->shift);
                 if ((whichpass) || (notfirst)) {
@@ -1066,13 +1120,11 @@ GwTime strace_timetrace(GwTime basetime, int notfirst)
                         s->his.h = s->his.h->next;
                     }
                 }
-
-                GwBit h_val = s->his.h->v.h_val;
                 if (t->flags & TR_INVERT) {
-                    h_val = gw_bit_invert(h_val);
+                    str[0] = AN_STR_INV[s->his.h->v.h_val];
+                } else {
+                    str[0] = AN_STR[s->his.h->v.h_val];
                 }
-
-                str[0] = gw_bit_to_char(s->his.h->v.h_val);
                 str[1] = 0x00;
 
                 switch (s->value) {
@@ -1160,9 +1212,13 @@ GwTime strace_timetrace(GwTime basetime, int notfirst)
                             s->his.h = s->his.h->next;
                         }
                     }
-                    if (s->his.h->flags & GW_HIST_ENT_FLAG_REAL) {
-                        if (!(s->his.h->flags & GW_HIST_ENT_FLAG_STRING)) {
+                    if (s->his.h->flags & HIST_REAL) {
+                        if (!(s->his.h->flags & HIST_STRING)) {
+#ifdef WAVE_HAS_H_DOUBLE
                             chval = convert_ascii_real(t, &s->his.h->v.h_double);
+#else
+                            chval = convert_ascii_real(t, (double *)s->his.h->v.h_vector);
+#endif
                         } else {
                             chval = convert_ascii_string((char *)s->his.h->v.h_vector);
                             chval2 = chval;
@@ -1266,7 +1322,7 @@ GwTime strace_timetrace(GwTime basetime, int notfirst)
         if (maxbase > fintim)
             return (MAX_HISTENT_TIME);
 
-        DEBUG(printf("Maxbase: %" GW_TIME_FORMAT ", total traces: %d\n", maxbase, totaltraces));
+        DEBUG(printf("Maxbase: " TTFormat ", total traces: %d\n", maxbase, totaltraces));
         s = GLOBALS->strace_ctx->straces;
         passcount = 0;
         while (s) {
@@ -1313,12 +1369,12 @@ GwTime strace_timetrace(GwTime basetime, int notfirst)
 
 void strace_maketimetrace(int mode)
 {
-    GwTime basetime = GLOBALS->tims.first;
-    GwTime endtime = MAX_HISTENT_TIME;
+    TimeType basetime = GLOBALS->tims.first;
+    TimeType endtime = MAX_HISTENT_TIME;
     int notfirst = 0;
-    GwTime *t;
+    TimeType *t;
     int t_allocated;
-    GwTime orig_basetime;
+    TimeType orig_basetime;
 
     if (GLOBALS->strace_ctx->timearray) {
         free_2(GLOBALS->strace_ctx->timearray);
@@ -1333,41 +1389,42 @@ void strace_maketimetrace(int mode)
         return; /* merely free stuff up */
     }
 
-    GwNamedMarkers *markers = gw_project_get_named_markers(GLOBALS->project);
-
     if (GLOBALS->strace_ctx->mark_idx_start > 0) {
-        GwMarker *start_marker =
-            gw_named_markers_get(markers, GLOBALS->strace_ctx->mark_idx_start - 1);
-        if (gw_marker_is_enabled(start_marker)) {
-            basetime = gw_marker_get_position(start_marker);
+        if (GLOBALS->named_markers[GLOBALS->strace_ctx->mark_idx_start - 1] >= 0) {
+            basetime = GLOBALS->named_markers[GLOBALS->strace_ctx->mark_idx_start - 1];
         } else {
-            gchar *text =
-                g_strdup_printf("Named Marker %s not in use.\n", gw_marker_get_name(start_marker));
+            char buf[16];
+            char *text;
+
+            make_bijective_marker_id_string(buf, GLOBALS->strace_ctx->mark_idx_start - 1);
+            text = g_strdup_printf("Named Marker %s not in use.\n", buf);
             status_text(text);
             g_free(text);
         }
     }
 
     if (GLOBALS->strace_ctx->mark_idx_end > 0) {
-        GwMarker *end_marker = gw_named_markers_get(markers, GLOBALS->strace_ctx->mark_idx_end - 1);
-        if (gw_marker_is_enabled(end_marker)) {
-            endtime = gw_marker_get_position(end_marker);
+        if (GLOBALS->named_markers[GLOBALS->strace_ctx->mark_idx_end - 1] >= 0) {
+            endtime = GLOBALS->named_markers[GLOBALS->strace_ctx->mark_idx_end - 1];
         } else {
-            gchar *text =
-                g_strdup_printf("Named Marker %s not in use.\n", gw_marker_get_name(end_marker));
+            char buf[16];
+            char *text;
+
+            make_bijective_marker_id_string(buf, GLOBALS->strace_ctx->mark_idx_end - 1);
+            text = g_strdup_printf("Named Marker %s not in use.\n", buf);
             status_text(text);
             g_free(text);
         }
     }
 
     if (basetime > endtime) {
-        GwTime tmp = basetime;
+        TimeType tmp = basetime;
         basetime = endtime;
         endtime = tmp;
     }
 
     t_allocated = 1;
-    t = malloc_2(sizeof(GwTime) * t_allocated);
+    t = malloc_2(sizeof(TimeType) * t_allocated);
 
     orig_basetime = basetime;
     while (1) {
@@ -1388,14 +1445,14 @@ void strace_maketimetrace(int mode)
             GLOBALS->strace_ctx->timearray_size++;
             if (GLOBALS->strace_ctx->timearray_size == t_allocated) {
                 t_allocated *= 2;
-                t = realloc_2(t, sizeof(GwTime) * t_allocated);
+                t = realloc_2(t, sizeof(TimeType) * t_allocated);
             }
         }
     }
 
     if (GLOBALS->strace_ctx->timearray_size) {
         GLOBALS->strace_ctx->timearray =
-            realloc_2(t, sizeof(GwTime) * GLOBALS->strace_ctx->timearray_size);
+            realloc_2(t, sizeof(TimeType) * GLOBALS->strace_ctx->timearray_size);
     } else {
         free_2(t);
         GLOBALS->strace_ctx->timearray = NULL;
@@ -1475,8 +1532,6 @@ void delete_strace_context(void)
  * printf to memory..
  */
 
-int mprintf(const char *fmt, ...) G_GNUC_PRINTF(1, 2);
-
 int mprintf(const char *fmt, ...)
 {
     int len;
@@ -1527,9 +1582,9 @@ void delete_mprintf(void)
  */
 void cache_actual_pattern_mark_traces(void)
 {
-    GwTrace *t;
+    Trptr t;
     TraceFlagsType def = 0;
-    GwTime prevshift = GW_TIME_CONSTANT(0);
+    TimeType prevshift = LLDescriptor(0);
     struct strace *st;
 
     delete_mprintf();
@@ -1562,14 +1617,14 @@ void cache_actual_pattern_mark_traces(void)
             }
 
             if ((t->shift) || ((prevshift) && (!t->shift))) {
-                mprintf(">%" GW_TIME_FORMAT "\n", t->shift);
+                mprintf(">" TTFormat "\n", t->shift);
             }
             prevshift = t->shift;
 
             if (!(t->flags & (TR_BLANK | TR_ANALOG_BLANK_STRETCH))) {
                 if (t->vector) {
                     int i;
-                    GwNode **nodes;
+                    nptr *nodes;
 
                     if (HasAlias(t)) {
                         mprintf("+{%s} ", t->name_full);
@@ -1579,36 +1634,49 @@ void cache_actual_pattern_mark_traces(void)
 
                     nodes = t->n.vec->bits->nodes;
                     for (i = 0; i < t->n.vec->bits->nnbits; i++) {
+                        int was_packed = HIER_DEPACK_STATIC;
                         char *namex;
                         if (nodes[i]->expansion) {
-                            namex = nodes[i]->expansion->parent->nname;
+                            namex = hier_decompress_flagged(nodes[i]->expansion->parent->nname,
+                                                            &was_packed);
                             mprintf(" (%d)%s", nodes[i]->expansion->parentbit, namex);
+                            /* if(was_packed) free_2(namex); ...not needed for HIER_DEPACK_STATIC */
                         } else {
+                            /* namex = */ hier_decompress_flagged(nodes[i]->nname,
+                                                                  &was_packed); /* scan-build */
                             mprintf(" %s", nodes[i]->nname);
+                            /* if(was_packed) free_2(namex); ...not needed for HIER_DEPACK_STATIC */
                         }
                     }
                     mprintf("\n");
                 } else {
+                    int was_packed = HIER_DEPACK_STATIC;
                     char *namex;
 
                     if (HasAlias(t)) {
                         if (t->n.nd->expansion) {
-                            namex = t->n.nd->expansion->parent->nname;
+                            namex = hier_decompress_flagged(t->n.nd->expansion->parent->nname,
+                                                            &was_packed);
                             mprintf("+{%s} (%d)%s\n",
                                     t->name + 2,
                                     t->n.nd->expansion->parentbit,
                                     namex);
+                            /* if(was_packed) free_2(namex); ...not needed for HIER_DEPACK_STATIC */
                         } else {
-                            namex = t->n.nd->nname;
+                            namex = hier_decompress_flagged(t->n.nd->nname, &was_packed);
                             mprintf("+{%s} %s\n", t->name + 2, namex);
+                            /* if(was_packed) free_2(namex); ...not needed for HIER_DEPACK_STATIC */
                         }
                     } else {
                         if (t->n.nd->expansion) {
-                            namex = t->n.nd->expansion->parent->nname;
+                            namex = hier_decompress_flagged(t->n.nd->expansion->parent->nname,
+                                                            &was_packed);
                             mprintf("(%d)%s\n", t->n.nd->expansion->parentbit, namex);
+                            /* if(was_packed) free_2(namex); ...not needed for HIER_DEPACK_STATIC */
                         } else {
-                            namex = t->n.nd->nname;
+                            namex = hier_decompress_flagged(t->n.nd->nname, &was_packed);
                             mprintf("%s\n", namex);
+                            /* if(was_packed) free_2(namex); ...not needed for HIER_DEPACK_STATIC*/
                         }
                     }
                 }

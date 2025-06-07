@@ -10,6 +10,7 @@
 #ifndef WAVE_RENDEROPT_H
 #define WAVE_RENDEROPT_H
 
-void renderbox(const char *title);
+void renderbox(char *title);
 
 #endif
+

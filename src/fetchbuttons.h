@@ -16,3 +16,4 @@ void discard_left(GtkWidget *text, gpointer data);
 void discard_right(GtkWidget *text, gpointer data);
 
 #endif
+

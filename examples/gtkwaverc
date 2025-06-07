@@ -19,8 +19,10 @@ dragzoom_threshold 0
 sst_dbl_action_type insert
 use_gestures maybe
 
+use_standard_trace_select no
 highlight_wavewindow no
 fill_waveform no
+alt_wheel_mode yes
 vcd_preserve_glitches no
 vcd_preserve_glitches_real no
 
@@ -32,14 +34,19 @@ ruler_origin 0
 ruler_step 0
 disable_ae2_alias no
 keep_xz_colors no
+disable_auto_comphier no
 
 strace_repeat_count 1
 enable_fast_exit yes
 disable_empty_gui off
 analog_redraw_skip_count 20
 splash_disable off
+hide_sst off
 sst_dynamic_filter on
+use_standard_clicking on
+use_toolbutton_interface on
 use_pango_fonts on
+use_scrollwheel_as_y off
 scale_to_time_dimension *
 zoom_dynamic off
 zoom_dynamic_end off
@@ -49,10 +56,12 @@ vlist_prepack off
 vlist_compression 4
 
 hier_max_level 1
+force_toolbars 0
 #cursor_snap 8
 zoom_pow10_snap on
 
 dynamic_resizing 1
+hpane_pack 1
 #initial_window_x 1000
 #initial_window_y 600
 #initial_window_xpos 50
@@ -60,6 +69,7 @@ dynamic_resizing 1
 
 use_maxtime_display 0
 
+enable_vcd_autosave 0
 use_roundcaps 1
 
 use_nonprop_fonts yes
@@ -68,6 +78,9 @@ use_big_fonts no
 constant_marker_update yes
 show_grid yes
 show_base_symbols no
+
+atomic_vectors yes
+vcd_explicit_zero_subscripts no
 
 disable_mouseover no
 clipboard_mouseover yes

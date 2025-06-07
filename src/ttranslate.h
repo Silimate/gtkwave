@@ -20,10 +20,12 @@
 
 #define TTRANS_FILTER_MAX (128)
 
-void ttrans_searchbox(const char *title);
+
+void ttrans_searchbox(char *title);
 void init_ttrans_data(void);
 int install_ttrans_filter(int which);
 void set_current_translate_ttrans(char *name);
 void remove_all_ttrans_filters(void);
 
 #endif
+

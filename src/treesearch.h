@@ -10,9 +10,11 @@
 #ifndef WAVE_TREESEARCH_H
 #define WAVE_TREESEARCH_H
 
-GtkWidget *treeboxframe(const char *title);
+void treebox(char *title, GCallback func, GtkWidget *old_window);
+GtkWidget* treeboxframe(char *title, GCallback func);
+void mkmenu_treesearch_cleanup(GtkWidget *widget, gpointer data);
 void dump_open_tree_nodes(FILE *wave, xl_Tree *t);
-int force_open_tree_node(char *name, int keep_path_nodes_open, GwTreeNode **t_pnt);
+int force_open_tree_node(char *name, int keep_path_nodes_open, struct tree **t_pnt);
 void select_tree_node(char *name);
 void dnd_setup(GtkWidget *src, gboolean search); /* dnd from gtk2 tree to signalwindow */
 void treeview_select_all_callback(void); /* gtk2 */
@@ -24,22 +26,11 @@ void DND_helper_quartz(char *data);
 void recurse_import(GtkWidget *widget, guint callback_action);
 #define WV_RECURSE_IMPORT_WARN (0)
 
-enum sst_cb_action
-{
-    SST_ACTION_INSERT,
-    SST_ACTION_REPLACE,
-    SST_ACTION_APPEND,
-    SST_ACTION_PREPEND,
-    SST_ACTION_NONE
-};
+enum sst_cb_action { SST_ACTION_INSERT, SST_ACTION_REPLACE, SST_ACTION_APPEND, SST_ACTION_PREPEND, SST_ACTION_NONE };
 
-enum
-{
-    VIEW_DRAG_INACTIVE,
-    TREE_TO_VIEW_DRAG_ACTIVE,
-    SEARCH_TO_VIEW_DRAG_ACTIVE
-};
+enum { VIEW_DRAG_INACTIVE, TREE_TO_VIEW_DRAG_ACTIVE, SEARCH_TO_VIEW_DRAG_ACTIVE };
 
 void action_callback(enum sst_cb_action action);
 
 #endif
+
