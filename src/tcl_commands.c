@@ -30,6 +30,7 @@
 #include "tcl_helper.h"
 #include "tcl_support_commands.h"
 #include "signal_list.h"
+#include "tcl_np.h"
 
 #if !defined __MINGW32__
 #include <sys/types.h>
@@ -48,112 +49,79 @@
 
 #if defined(HAVE_LIBTCL)
 
-static int gtkwavetcl_badNumArgs(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], int expected)
+static int gtkwavetcl_badNumArgs(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[], int expected)
 {
-(void)clientData;
-
-Tcl_Obj *aobj;
-char reportString[1024];
-
-sprintf(reportString, "* wrong number of arguments for '%s': %d expected, %d encountered", Tcl_GetString(objv[0]), expected, objc-1);
-
-aobj = Tcl_NewStringObj(reportString, -1);
-Tcl_SetObjResult(interp, aobj);
-return(TCL_ERROR);
+    char reportString[256];
+    sprintf(reportString, "* wrong number of arguments for '%s': %d expected, %d encountered", Tcl_GetString(objv[0]), expected, objc-1);
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(reportString, -1));
+    return TCL_ERROR;
 }
 
-static int gtkwavetcl_nop(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_nop(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
-(void)clientData;
-(void)interp;
-(void)objc;
-(void)objv;
-
-/* nothing, this is simply to call gtk's main loop */
-gtkwave_main_iteration();
-return(TCL_OK);
+    (void)clientData;
+    (void)interp;
+    (void)objc;
+    (void)objv;
+    return TCL_OK;
 }
 
-static int gtkwavetcl_printInteger(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], int intVal)
+static int gtkwavetcl_printInteger(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[], int intVal)
 {
-(void)clientData;
-(void)objc;
-(void)objv;
-
-Tcl_Obj *aobj;
-char reportString[33];
-
-sprintf(reportString, "%d", intVal);
-
-aobj = Tcl_NewStringObj(reportString, -1);
-Tcl_SetObjResult(interp, aobj);
-
-return(TCL_OK);
+    char reportString[256];
+    (void)clientData;
+    (void)interp;
+    (void)objc;
+    (void)objv;
+    sprintf(reportString, "%d", intVal);
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(reportString, -1));
+    return TCL_OK;
 }
 
-static int gtkwavetcl_printTimeType(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], TimeType ttVal)
+static int gtkwavetcl_printTimeType(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[], TimeType ttVal)
 {
-(void)clientData;
-(void)objc;
-(void)objv;
-
-Tcl_Obj *aobj;
-char reportString[65];
-
-sprintf(reportString, TTFormat, ttVal);
-
-aobj = Tcl_NewStringObj(reportString, -1);
-Tcl_SetObjResult(interp, aobj);
-
-return(TCL_OK);
+    char reportString[256];
+    (void)clientData;
+    (void)interp;
+    (void)objc;
+    (void)objv;
+    sprintf(reportString, TTFormat, ttVal);
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(reportString, -1));
+    return TCL_OK;
 }
 
-static int gtkwavetcl_printTraceFlagsType(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], TraceFlagsType ttVal)
+static int gtkwavetcl_printTraceFlagsType(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[], TraceFlagsType ttVal)
 {
-(void)clientData;
-(void)objc;
-(void)objv;
-
-Tcl_Obj *aobj;
-char reportString[65];
-
-sprintf(reportString, "%"TRACEFLAGSPRIuFMT, ttVal);
-
-aobj = Tcl_NewStringObj(reportString, -1);
-Tcl_SetObjResult(interp, aobj);
-
-return(TCL_OK);
+    char reportString[256];
+    (void)clientData;
+    (void)interp;
+    (void)objc;
+    (void)objv;
+    sprintf(reportString, "%"TRACEFLAGSPRIuFMT, ttVal);
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(reportString, -1));
+    return TCL_OK;
 }
 
-static int gtkwavetcl_printDouble(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], double dVal)
+static int gtkwavetcl_printDouble(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[], double dVal)
 {
-(void)clientData;
-(void)objc;
-(void)objv;
-
-Tcl_Obj *aobj;
-char reportString[65];
-
-sprintf(reportString, "%e", dVal);
-
-aobj = Tcl_NewStringObj(reportString, -1);
-Tcl_SetObjResult(interp, aobj);
-
-return(TCL_OK);
+    char reportString[256];
+    (void)clientData;
+    (void)interp;
+    (void)objc;
+    (void)objv;
+    sprintf(reportString, "%e", dVal);
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(reportString, -1));
+    return TCL_OK;
 }
 
-static int gtkwavetcl_printString(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], const char *reportString)
+static int gtkwavetcl_printString(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[], const char *reportString)
 {
-(void)clientData;
-(void)objc;
-(void)objv;
-
-Tcl_Obj *aobj;
-
-aobj = Tcl_NewStringObj(reportString, -1);
-Tcl_SetObjResult(interp, aobj);
-
-return(TCL_OK);
+    (void)clientData;
+    (void)interp;
+    (void)objc;
+    (void)objv;
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(reportString, -1));
+    return TCL_OK;
 }
 
 static char *extractFullTraceName(Trptr t)
@@ -205,19 +173,19 @@ char *get_Tcl_string(Tcl_Obj *obj) {
   return s ;
 }
 
-static int gtkwavetcl_getNumFacs(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getNumFacs(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 int value = GLOBALS->numfacs;
 return(gtkwavetcl_printInteger(clientData, interp, objc, objv, value));
 }
 
-static int gtkwavetcl_getLongestName(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getLongestName(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 int value = GLOBALS->longestname;
 return(gtkwavetcl_printInteger(clientData, interp, objc, objv, value));
 }
 
-static int gtkwavetcl_getFacName(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getFacName(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 Tcl_Obj *aobj;
 
@@ -246,47 +214,43 @@ if(objc == 2)
 return(TCL_OK);
 }
 
-static int gtkwavetcl_getFacDir(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getFacDir(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
-Tcl_Obj *aobj;
+        if(objc != 2)
+        {
+                return(gtkwavetcl_badNumArgs(clientData, interp, objc, objv, 1));
+        }
 
-if(objc == 2)
-	{
-        char *s = get_Tcl_string(objv[1]);
+        char *s = Tcl_GetString(objv[1]);
         int which = atoi(s);
 
         if((which >= 0) && (which < GLOBALS->numfacs))
-                {
-                WAVE_NODEVARDIR_STR
-                int vardir = GLOBALS->facs[which]->n->vardir; /* two bit already chops down to 0..3, but this doesn't hurt */
-                if((vardir < 0) || (vardir > ND_DIR_MAX))
-                        {
-                        vardir = 0;
-                        }
-
-                aobj = Tcl_NewStringObj(vardir_strings[vardir], -1);
-                Tcl_SetObjResult(interp, aobj);
-                }
-        }
-        else
         {
-        return(gtkwavetcl_badNumArgs(clientData, interp, objc, objv, 1));
-        }
+                WAVE_NODEVARDIR_STR
+                int vardir = GLOBALS->facs[which]->n->vardir;
+                if((vardir < 0) || (vardir > ND_DIR_MAX))
+                {
+                        vardir = 0;
+                }
 
-return(TCL_OK);
+                Tcl_Obj *aobj = Tcl_NewStringObj(vardir_strings[vardir], -1);
+                Tcl_SetObjResult(interp, aobj);
+        }
+        return(TCL_OK);
 }
 
-static int gtkwavetcl_getFacVtype(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getFacVtype(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
-Tcl_Obj *aobj;
-
-if(objc == 2)
+        if(objc != 2)
         {
-	char *s = get_Tcl_string(objv[1]);
+                return(gtkwavetcl_badNumArgs(clientData, interp, objc, objv, 1));
+        }
+
+        char *s = Tcl_GetString(objv[1]);
         int which = atoi(s);
 
         if((which >= 0) && (which < GLOBALS->numfacs))
-                {
+        {
                 WAVE_NODEVARTYPE_STR
                 WAVE_NODEVARDATATYPE_STR
                 unsigned int varxt;
@@ -299,40 +263,35 @@ if(objc == 2)
 
                 vartype = GLOBALS->facs[which]->n->vartype;
                 if((vartype < 0) || (vartype > ND_VARTYPE_MAX))
-                        {
+                {
                         vartype = 0;
-                        }
+                }
 
                 vardt = GLOBALS->facs[which]->n->vardt;
                 if((vardt < 0) || (vardt > ND_VDT_MAX))
-                        {
+                {
                         vardt = 0;
-                        }
-
-                aobj = Tcl_NewStringObj( (((GLOBALS->supplemental_datatypes_encountered) && (!GLOBALS->supplemental_vartypes_encountered)) ?
-                                                        (varxt ? varxt_pnt : vardatatype_strings[vardt]) : vartype_strings[vartype]), -1);
-                Tcl_SetObjResult(interp, aobj);
                 }
-        }
-	else
-        {
-	return(gtkwavetcl_badNumArgs(clientData, interp, objc, objv, 1));
-        }
 
-return(TCL_OK);
+                Tcl_Obj *aobj = Tcl_NewStringObj(((GLOBALS->supplemental_datatypes_encountered) && (!GLOBALS->supplemental_vartypes_encountered)) ?
+                                                (varxt ? varxt_pnt : vardatatype_strings[vardt]) : vartype_strings[vartype], -1);
+                Tcl_SetObjResult(interp, aobj);
+        }
+        return(TCL_OK);
 }
 
-static int gtkwavetcl_getFacDtype(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getFacDtype(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
-Tcl_Obj *aobj;
-
-if(objc == 2)
+        if(objc != 2)
         {
-        char *s = get_Tcl_string(objv[1]);
+                return(gtkwavetcl_badNumArgs(clientData, interp, objc, objv, 1));
+        }
+
+        char *s = Tcl_GetString(objv[1]);
         int which = atoi(s);
 
         if((which >= 0) && (which < GLOBALS->numfacs))
-                {
+        {
                 WAVE_NODEVARTYPE_STR
                 WAVE_NODEVARDATATYPE_STR
                 unsigned int varxt;
@@ -344,59 +303,40 @@ if(objc == 2)
 
                 vardt = GLOBALS->facs[which]->n->vardt;
                 if((vardt < 0) || (vardt > ND_VDT_MAX))
-                        {
+                {
                         vardt = 0;
-                        }
-
-                aobj = Tcl_NewStringObj( varxt ? varxt_pnt : vardatatype_strings[vardt], -1);
-                Tcl_SetObjResult(interp, aobj);
                 }
+
+                Tcl_Obj *aobj = Tcl_NewStringObj(varxt ? varxt_pnt : vardatatype_strings[vardt], -1);
+                Tcl_SetObjResult(interp, aobj);
         }
-        else
-        {
-	return(gtkwavetcl_badNumArgs(clientData, interp, objc, objv, 1));
-        }
-
-return(TCL_OK);
+        return(TCL_OK);
 }
 
-static int gtkwavetcl_getMinTime(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getMinTime(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
-TimeType value = GLOBALS->min_time;
-return(gtkwavetcl_printTimeType(clientData, interp, objc, objv, value));
+        return(gtkwavetcl_printTimeType(clientData, interp, objc, objv, GLOBALS->min_time));
 }
 
-static int gtkwavetcl_getMaxTime(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getMaxTime(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
-TimeType value = GLOBALS->max_time;
-return(gtkwavetcl_printTimeType(clientData, interp, objc, objv, value));
+        return(gtkwavetcl_printTimeType(clientData, interp, objc, objv, GLOBALS->max_time));
 }
 
-static int gtkwavetcl_getTimeZero(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getTimeZero(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
-TimeType value = GLOBALS->global_time_offset;
-return(gtkwavetcl_printTimeType(clientData, interp, objc, objv, value));
+        return(gtkwavetcl_printTimeType(clientData, interp, objc, objv, GLOBALS->global_time_offset));
 }
 
-static int gtkwavetcl_getTimeDimension(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getTimeDimension(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
-(void)clientData;
-(void)objc;
-(void)objv;
-
-Tcl_Obj *aobj;
-char reportString[2];
-
-reportString[0] = GLOBALS->time_dimension;
-reportString[1] = 0;
-
-aobj = Tcl_NewStringObj(reportString, -1);
-Tcl_SetObjResult(interp, aobj);
-
-return(TCL_OK);
+        char reportString[64];
+        sprintf(reportString, "%d", GLOBALS->time_dimension);
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(reportString, -1));
+        return(TCL_OK);
 }
 
-static int gtkwavetcl_getArgv(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getArgv(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 (void)clientData;
 (void)objc;
@@ -411,31 +351,31 @@ if(GLOBALS->argvlist)
 return(TCL_OK);
 }
 
-static int gtkwavetcl_getBaselineMarker(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getBaselineMarker(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 TimeType value = GLOBALS->tims.baseline;
 return(gtkwavetcl_printTimeType(clientData, interp, objc, objv, value));
 }
 
-static int gtkwavetcl_getMarker(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getMarker(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 TimeType value = GLOBALS->tims.marker;
 return(gtkwavetcl_printTimeType(clientData, interp, objc, objv, value));
 }
 
-static int gtkwavetcl_getWindowStartTime(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getWindowStartTime(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 TimeType value = GLOBALS->tims.start;
 return(gtkwavetcl_printTimeType(clientData, interp, objc, objv, value));
 }
 
-static int gtkwavetcl_getWindowEndTime(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getWindowEndTime(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 TimeType value = GLOBALS->tims.end;
 return(gtkwavetcl_printTimeType(clientData, interp, objc, objv, value));
 }
 
-static int gtkwavetcl_getDumpType(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getDumpType(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 (void)clientData;
 (void)objc;
@@ -486,7 +426,7 @@ return(TCL_OK);
 }
 
 
-static int gtkwavetcl_getNamedMarker(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getNamedMarker(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 if(objc == 2)
 	{
@@ -521,55 +461,55 @@ if(objc == 2)
 return(TCL_OK);
 }
 
-static int gtkwavetcl_getWaveHeight(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getWaveHeight(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 int value = GLOBALS->waveheight;
 return(gtkwavetcl_printInteger(clientData, interp, objc, objv, value));
 }
 
-static int gtkwavetcl_getWaveWidth(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getWaveWidth(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 int value = GLOBALS->wavewidth;
 return(gtkwavetcl_printInteger(clientData, interp, objc, objv, value));
 }
 
-static int gtkwavetcl_getPixelsUnitTime(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getPixelsUnitTime(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 double value = GLOBALS->pxns;
 return(gtkwavetcl_printDouble(clientData, interp, objc, objv, value));
 }
 
-static int gtkwavetcl_getUnitTimePixels(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getUnitTimePixels(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 double value = GLOBALS->nspx;
 return(gtkwavetcl_printDouble(clientData, interp, objc, objv, value));
 }
 
-static int gtkwavetcl_getZoomFactor(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getZoomFactor(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 double value = GLOBALS->tims.zoom;
 return(gtkwavetcl_printDouble(clientData, interp, objc, objv, value));
 }
 
-static int gtkwavetcl_getDumpFileName(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getDumpFileName(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 char *value = GLOBALS->loaded_file_name;
 return(gtkwavetcl_printString(clientData, interp, objc, objv, value));
 }
 
-static int gtkwavetcl_getVisibleNumTraces(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getVisibleNumTraces(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 int value = GLOBALS->traces.visible;
 return(gtkwavetcl_printInteger(clientData, interp, objc, objv, value));
 }
 
-static int gtkwavetcl_getTotalNumTraces(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getTotalNumTraces(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 int value = GLOBALS->traces.total;
 return(gtkwavetcl_printInteger(clientData, interp, objc, objv, value));
 }
 
-static int gtkwavetcl_getTraceNameFromIndex(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getTraceNameFromIndex(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 if(objc == 2)
 	{
@@ -607,7 +547,7 @@ if(objc == 2)
 return(TCL_OK);
 }
 
-static int gtkwavetcl_getTraceFlagsFromIndex(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getTraceFlagsFromIndex(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 if(objc == 2)
 	{
@@ -638,7 +578,7 @@ if(objc == 2)
 return(TCL_OK);
 }
 
-static int gtkwavetcl_getTraceValueAtMarkerFromIndex(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getTraceValueAtMarkerFromIndex(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 if(objc == 2)
 	{
@@ -679,7 +619,7 @@ if(objc == 2)
 return(TCL_OK);
 }
 
-static int gtkwavetcl_getTraceValueAtMarkerFromName(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getTraceValueAtMarkerFromName(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 if(objc == 2)
 	{
@@ -720,7 +660,7 @@ return(TCL_OK);
 }
 
 
-static int gtkwavetcl_getTraceValueAtNamedMarkerFromName(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getTraceValueAtNamedMarkerFromName(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 if(objc == 3)
 	{
@@ -806,25 +746,25 @@ if(objc == 3)
 return(TCL_OK);
 }
 
-static int gtkwavetcl_getHierMaxLevel(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getHierMaxLevel(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 int value = GLOBALS->hier_max_level;
 return(gtkwavetcl_printInteger(clientData, interp, objc, objv, value));
 }
 
-static int gtkwavetcl_getFontHeight(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getFontHeight(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 int value = GLOBALS->fontheight;
 return(gtkwavetcl_printInteger(clientData, interp, objc, objv, value));
 }
 
-static int gtkwavetcl_getLeftJustifySigs(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getLeftJustifySigs(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 int value = (GLOBALS->left_justify_sigs != 0);
 return(gtkwavetcl_printInteger(clientData, interp, objc, objv, value));
 }
 
-static int gtkwavetcl_getSaveFileName(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getSaveFileName(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 char *value = GLOBALS->filesel_writesave;
 if(value)
@@ -835,7 +775,7 @@ if(value)
 return(TCL_OK);
 }
 
-static int gtkwavetcl_getStemsFileName(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getStemsFileName(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 char *value = GLOBALS->stems_name;
 if(value)
@@ -846,7 +786,7 @@ if(value)
 return(TCL_OK);
 }
 
-static int gtkwavetcl_getTraceScrollbarRowValue(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getTraceScrollbarRowValue(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 GtkAdjustment *wadj = gw_signal_list_get_vadjustment(GW_SIGNAL_LIST(GLOBALS->signalarea));
 int value = (int)gtk_adjustment_get_value(wadj);
@@ -856,7 +796,7 @@ return(gtkwavetcl_printInteger(clientData, interp, objc, objv, value));
 
 
 
-static int gtkwavetcl_setMarker(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_setMarker(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 if(objc == 2)
         {
@@ -887,7 +827,7 @@ return(TCL_OK);
 }
 
 
-static int gtkwavetcl_setBaselineMarker(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_setBaselineMarker(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 if(objc == 2)
         {
@@ -918,7 +858,7 @@ return(TCL_OK);
 }
 
 
-static int gtkwavetcl_setWindowStartTime(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_setWindowStartTime(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 if(objc == 2)
         {
@@ -964,7 +904,7 @@ if(objc == 2)
 return(TCL_OK);
 }
 
-static int gtkwavetcl_setZoomFactor(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_setZoomFactor(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 if(objc == 2)
         {
@@ -1000,7 +940,7 @@ if(objc == 2)
 return(TCL_OK);
 }
 
-static int gtkwavetcl_setZoomRangeTimes(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_setZoomRangeTimes(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 if(objc == 3)
         {
@@ -1034,7 +974,7 @@ if(objc == 3)
 return(TCL_OK);
 }
 
-static int gtkwavetcl_setLeftJustifySigs(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_setLeftJustifySigs(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 if(objc == 2)
         {
@@ -1055,7 +995,7 @@ if(objc == 2)
 return(TCL_OK);
 }
 
-static int gtkwavetcl_setNamedMarker(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_setNamedMarker(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 if((objc == 3)||(objc == 4))
         {
@@ -1109,7 +1049,7 @@ return(TCL_OK);
 }
 
 
-static int gtkwavetcl_setTraceScrollbarRowValue(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_setTraceScrollbarRowValue(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 if(objc == 2)
         {
@@ -1141,7 +1081,7 @@ if(objc == 2)
 return(TCL_OK);
 }
 
-static int gtkwavetcl_addCommentTracesFromList(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_addCommentTracesFromList(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 char reportString[33];
 Tcl_Obj *aobj;
@@ -1179,7 +1119,7 @@ return(TCL_OK);
 }
 
 
-static int gtkwavetcl_addSignalsFromList(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_addSignalsFromList(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 int i;
 char *one_entry = NULL, *mult_entry = NULL;
@@ -1230,7 +1170,7 @@ Tcl_SetObjResult(interp, aobj);
 return(TCL_OK);
 }
 
-static int gtkwavetcl_processTclList(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_processTclList(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 int num_found = 0;
 char reportString[33];
@@ -1262,7 +1202,7 @@ Tcl_SetObjResult(interp, aobj);
 return(TCL_OK);
 }
 
-static int gtkwavetcl_deleteSignalsFromList(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_deleteSignalsFromList(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 int i;
 int num_found = 0;
@@ -1351,7 +1291,7 @@ Tcl_SetObjResult(interp, aobj);
 return(TCL_OK);
 }
 
-static int gtkwavetcl_deleteSignalsFromListIncludingDuplicates(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_deleteSignalsFromListIncludingDuplicates(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 int i;
 int num_found = 0;
@@ -1436,7 +1376,7 @@ Tcl_SetObjResult(interp, aobj);
 return(TCL_OK);
 }
 
-static int gtkwavetcl_highlightSignalsFromList(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_highlightSignalsFromList(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 int i;
 int num_found = 0;
@@ -1500,7 +1440,7 @@ Tcl_SetObjResult(interp, aobj);
 return(TCL_OK);
 }
 
-static int gtkwavetcl_unhighlightSignalsFromList(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_unhighlightSignalsFromList(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 int i;
 int num_found = 0;
@@ -1565,7 +1505,7 @@ return(TCL_OK);
 }
 
 
-static int gtkwavetcl_setTraceHighlightFromIndex(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_setTraceHighlightFromIndex(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 if(objc == 3)
 	{
@@ -1608,7 +1548,7 @@ if(objc == 3)
 return(TCL_OK);
 }
 
-static int gtkwavetcl_setTraceHighlightFromNameMatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_setTraceHighlightFromNameMatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 if(objc == 3)
 	{
@@ -1660,7 +1600,7 @@ return(TCL_OK);
 
 
 static int gtkwavetcl_signalChangeList(ClientData clientData, Tcl_Interp *interp,
-				       int objc, Tcl_Obj *CONST objv[]) {
+				       int objc, Tcl_Obj *const objv[]) {
 (void) clientData;
 
     int dir = STRACE_FORWARD ;
@@ -1741,8 +1681,7 @@ static int gtkwavetcl_signalChangeList(ClientData clientData, Tcl_Interp *interp
       }
     }
     if(error) {
-      Tcl_SetObjResult
-	(interp,
+      Tcl_SetObjResult(interp,
 	 Tcl_NewStringObj("Usage: signal_change_list ?name? ?-start time? ?-end time? ?-max size? ?-dir forward|backward?", -1)) ;
       return TCL_ERROR;
     }
@@ -1764,7 +1703,7 @@ static int gtkwavetcl_signalChangeList(ClientData clientData, Tcl_Interp *interp
     return TCL_OK ;
 }
 
-static int gtkwavetcl_findNextEdge(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_findNextEdge(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 edge_search(STRACE_FORWARD);
 gtkwave_main_iteration();
@@ -1772,7 +1711,7 @@ return(gtkwavetcl_getMarker(clientData, interp, objc, objv));
 }
 
 
-static int gtkwavetcl_findPrevEdge(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_findPrevEdge(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 edge_search(STRACE_BACKWARD);
 gtkwave_main_iteration();
@@ -1781,7 +1720,7 @@ return(gtkwavetcl_getMarker(clientData, interp, objc, objv));
 
 
 int SST_open_node(char *name) ;
-static int gtkwavetcl_forceOpenTreeNode(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_forceOpenTreeNode(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
   int rv = -100;		/* Tree does not exist */
   char *s = NULL ;
@@ -1806,7 +1745,7 @@ static int gtkwavetcl_forceOpenTreeNode(ClientData clientData, Tcl_Interp *inter
   if (rv == -100) {
     return(gtkwavetcl_badNumArgs(clientData, interp, objc, objv, 1));
   }
-  Tcl_SetObjResult(GLOBALS->interp, (rv == SST_NODE_CURRENT) ?
+  Tcl_SetObjResult(interp, (rv == SST_NODE_CURRENT) ?
 		   Tcl_NewStringObj(GLOBALS->selected_hierarchy_name,
 				    strlen(GLOBALS->selected_hierarchy_name)) :
 		   Tcl_NewIntObj(rv)) ;
@@ -1814,7 +1753,7 @@ static int gtkwavetcl_forceOpenTreeNode(ClientData clientData, Tcl_Interp *inter
   return(TCL_OK);
 }
 
-static int gtkwavetcl_setFromEntry(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_setFromEntry(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 if(objc == 2)
         {
@@ -1837,7 +1776,7 @@ return(TCL_OK);
 }
 
 
-static int gtkwavetcl_setToEntry(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_setToEntry(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 if(objc == 2)
         {
@@ -1860,7 +1799,7 @@ return(TCL_OK);
 }
 
 
-static int gtkwavetcl_getFromEntry(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getFromEntry(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 const char *value = gtk_entry_get_text(GTK_ENTRY(GLOBALS->from_entry));
 if(value)
@@ -1872,7 +1811,7 @@ return(TCL_OK);
 }
 
 
-static int gtkwavetcl_getToEntry(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getToEntry(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 const char *value = gtk_entry_get_text(GTK_ENTRY(GLOBALS->to_entry));
 if(value)
@@ -1884,7 +1823,7 @@ return(TCL_OK);
 }
 
 
-static int gtkwavetcl_getDisplayedSignals(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getDisplayedSignals(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 if(objc == 1)
         {
@@ -1901,7 +1840,7 @@ if(objc == 1)
 }
 
 
-static int gtkwavetcl_getTraceFlagsFromName(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getTraceFlagsFromName(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 if(objc == 2)
 	{
@@ -1936,7 +1875,7 @@ if(objc == 2)
 return(TCL_OK);
 }
 
-static int gtkwavetcl_loadFile(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_loadFile(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
   if(objc == 2)
     {
@@ -1963,7 +1902,7 @@ static int gtkwavetcl_loadFile(ClientData clientData, Tcl_Interp *interp, int ob
   return(TCL_OK);
 }
 
-static int gtkwavetcl_reLoadFile(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_reLoadFile(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 
   if(objc == 1)
@@ -1984,7 +1923,7 @@ static int gtkwavetcl_reLoadFile(ClientData clientData, Tcl_Interp *interp, int 
   return(TCL_OK);
 }
 
-static int gtkwavetcl_presentWindow(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_presentWindow(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 
   if(objc == 1)
@@ -1998,7 +1937,7 @@ static int gtkwavetcl_presentWindow(ClientData clientData, Tcl_Interp *interp, i
   return(TCL_OK);
 }
 
-static int gtkwavetcl_showSignal(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_showSignal(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
   if(objc == 3)
     {
@@ -2067,7 +2006,7 @@ return(FALSE);
 }
 
 
-static int gtkwavetcl_setTabActive(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_setTabActive(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 if(objc == 2)
         {
@@ -2100,14 +2039,14 @@ if(objc == 2)
 }
 
 
-static int gtkwavetcl_getNumTabs(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_getNumTabs(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 int value = GLOBALS->num_notebook_pages;
 return(gtkwavetcl_printInteger(clientData, interp, objc, objv, value));
 }
 
 
-static int gtkwavetcl_installFileFilter(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_installFileFilter(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 if(objc == 2)
         {
@@ -2126,7 +2065,7 @@ if(objc == 2)
 }
 
 
-static int gtkwavetcl_setCurrentTranslateFile(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_setCurrentTranslateFile(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 if(objc == 2)
         {
@@ -2143,7 +2082,7 @@ if(objc == 2)
 }
 
 
-static int gtkwavetcl_setCurrentTranslateEnums(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_setCurrentTranslateEnums(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 if(objc == 2)
         {
@@ -2160,7 +2099,7 @@ if(objc == 2)
 }
 
 
-static int gtkwavetcl_installProcFilter(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_installProcFilter(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 if(objc == 2)
         {
@@ -2179,7 +2118,7 @@ if(objc == 2)
 }
 
 
-static int gtkwavetcl_setCurrentTranslateProc(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_setCurrentTranslateProc(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 if(objc == 2)
         {
@@ -2196,7 +2135,7 @@ if(objc == 2)
 }
 
 
-static int gtkwavetcl_installTransFilter(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_installTransFilter(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 if(objc == 2)
         {
@@ -2215,7 +2154,7 @@ if(objc == 2)
 }
 
 
-static int gtkwavetcl_setCurrentTranslateTransProc(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+static int gtkwavetcl_setCurrentTranslateTransProc(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
 {
 if(objc == 2)
         {

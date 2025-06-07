@@ -25,6 +25,19 @@
      (TCL_MAJOR_VERSION == (major) && TCL_MINOR_VERSION == (minor) && \
       TCL_RELEASE_SERIAL >= (micro)))
 
+#if TCL_MAJOR_VERSION >= 9
+#define GTK_TCL_SET_STRING_RESULT(interp, str) Tcl_SetObjResult((interp), Tcl_NewStringObj((str), -1))
+#define GTK_TCL_SET_OBJ_RESULT(interp, obj) Tcl_SetObjResult((interp), (obj))
+#define GTK_TCL_GET_STRING_RESULT(interp) Tcl_GetString(Tcl_GetObjResult((interp)))
+#define GTK_TCL_NEW_INT_OBJ(val) Tcl_NewWideIntObj((Tcl_WideInt)(val))
+#define GTK_TCL_SET_RESULT(interp, str) Tcl_SetObjResult((interp), Tcl_NewStringObj((str), -1))
+#else
+#define GTK_TCL_SET_STRING_RESULT(interp, str) Tcl_SetResult((interp), (str), TCL_VOLATILE)
+#define GTK_TCL_SET_OBJ_RESULT(interp, obj) Tcl_SetObjResult((interp), (obj))
+#define GTK_TCL_GET_STRING_RESULT(interp) Tcl_GetStringResult((interp))
+#define GTK_TCL_NEW_INT_OBJ(val) Tcl_NewIntObj((val))
+#define GTK_TCL_SET_RESULT(interp, str) Tcl_SetResult((interp), (str), TCL_VOLATILE)
+#endif
 
 typedef struct
         {
