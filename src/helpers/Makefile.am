@@ -1,6 +1,8 @@
 ## -*- makefile -*-
 ##
 
+AUTOMAKE_OPTIONS = subdir-objects
+
 BIGFILES = -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 AIXFLAGS = -bmaxdata:0xd0000000/dsa
 LIBLZMA_CFLAGS = -I$(srcdir)/../liblzma $(LIBXZ_CFLAGS)

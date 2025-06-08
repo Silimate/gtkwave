@@ -1,6 +1,8 @@
 ## -*- makefile -*-
 ##
 
+AUTOMAKE_OPTIONS = subdir-objects
+
 SUBDIRS=	liblzma helpers helpers/fst cocoa
 DIST_SUBDIRS=	liblzma helpers helpers/fst cocoa
 

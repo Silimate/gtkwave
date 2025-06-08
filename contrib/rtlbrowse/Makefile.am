@@ -1,6 +1,8 @@
 ## -*- makefile -*-
 ##
 
+AUTOMAKE_OPTIONS = subdir-objects
+
 # FIXME -- how to figure out automatically when we need these?
 # 
 SUBDIRS= 
