@@ -4,6 +4,7 @@ brew bundle install
 TCLTK_PREFIX=`brew --prefix tcl-tk@8`
 ./configure \
     --enable-stubs \
+    --enable-gtk3 \
     --prefix=`brew --prefix` \
     --with-tcl=$TCLTK_PREFIX/lib \
     --with-tk=$TCLTK_PREFIX/lib \
