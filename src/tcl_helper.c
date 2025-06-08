@@ -2656,20 +2656,102 @@ g_timeout_add(atoi(WAVE_TCLCB_TIMER_PERIOD_INIT), setvar_timer, (gpointer)interp
 
 
 
-static int menu_func(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[])
+static int menu_func(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
-        int i;
-        char *s;
+gtkwave_mlist_t *ife = (gtkwave_mlist_t *)clientData;
+int i;
+struct wave_script_args *old_wave_script_args = GLOBALS->wave_script_args; /* stackable args */
+char fexit = GLOBALS->enable_fast_exit;
+int old_toggle_item;
 
-        for(i = 1; i < objc; i++)
-        {
-                s = Tcl_GetString(objv[i]);
-                if(s)
-                {
-                        // ... existing code ...
-                }
-        }
-        return(TCL_OK);
+if(GLOBALS->in_tcl_callback) /* don't allow callbacks to call menu functions (yet) */
+	{
+	char reportString[1024];
+	char menuItem[512];
+	Tcl_Obj *aobj;
+
+	char *src = ife->path;
+	char *dst = menuItem;
+
+	while(*src)
+		{
+		*dst = (*src != ' ') ? *src : '_';
+		src++;
+		dst++;
+		}
+	*dst = 0;
+
+	sprintf(reportString, "gtkwave::%s prohibited in callback", menuItem);
+	gtkwavetcl_setvar_nonblocking(WAVE_TCLCB_ERROR,reportString,WAVE_TCLCB_ERROR_FLAGS);
+
+	aobj = Tcl_NewStringObj(reportString, -1);
+	Tcl_SetObjResult(interp, aobj);
+	return(TCL_ERROR);
+	}
+
+GLOBALS->wave_script_args = NULL;
+GLOBALS->enable_fast_exit = 1;
+
+if(objc > 1)
+	{
+	struct wave_script_args *wc = NULL;
+
+	for(i=1;i<objc;i++)
+		{
+		char *s = Tcl_GetString(objv[i]);
+		int slen = strlen(s);
+		struct wave_script_args *w = wave_alloca(sizeof(struct wave_script_args) + slen + 1);
+			/*  alloca used in case we context switch and get our allocator ripped out from under us -- the call stack won't go away */
+		if(slen)
+			{
+			strcpy(w->payload, s); /* scan-build complains but it thinks payload[1] is the actual memory allocated */
+			}
+		w->curr = NULL; /* yes, curr is only ever used for the 1st struct, but there is no sense creating head/follower structs for this */
+		w->next = NULL;
+
+		if(!GLOBALS->wave_script_args)
+			{
+			GLOBALS->wave_script_args = w;
+			w->curr = w;
+			}
+			else
+			{
+			if(wc)	/* scan-build: suppress warning, this will never happen */
+				{
+				wc->next = w; /* we later really traverse through curr->next from the head pointer */
+				}
+			}
+
+		wc = w;
+		}
+
+	if(!GLOBALS->wave_script_args) /* create a dummy list in order to keep requesters from popping up in file.c, etc. */
+		{
+		GLOBALS->wave_script_args = wave_alloca(sizeof(struct wave_script_args) + 1);
+		GLOBALS->wave_script_args->curr = NULL;
+		GLOBALS->wave_script_args->next = NULL;
+		GLOBALS->wave_script_args->payload[0] = 0;
+		}
+
+	old_toggle_item = GLOBALS->tcl_menu_toggle_item;
+	GLOBALS->tcl_menu_toggle_item = (ife->item_type && !strcmp(ife->item_type, "<ToggleItem>"));
+	ife->callback();
+	GLOBALS->tcl_menu_toggle_item = old_toggle_item;
+	gtkwave_main_iteration();
+
+	GLOBALS->wave_script_args = NULL;
+	}
+	else
+	{
+	GLOBALS->tcl_menu_toggle_item = (ife->item_type && !strcmp(ife->item_type, "<ToggleItem>"));
+	ife->callback();
+	GLOBALS->tcl_menu_toggle_item =	old_toggle_item;
+	gtkwave_main_iteration();
+	}
+
+GLOBALS->enable_fast_exit = fexit;
+GLOBALS->wave_script_args = old_wave_script_args;
+return(TCL_OK); /* signal error with rc=TCL_ERROR, Tcl_Obj *aobj = Tcl_NewStringObj(reportString, -1); Tcl_SetObjResult(interp, aobj); */
 }
 
 /* XXXXXXXXXXXXXXXXXXXXXXXXX */
@@ -2696,7 +2778,7 @@ if((nam) && (strlen(nam)) && (!GLOBALS->tcl_running))
 
 	if(tclrc != TCL_OK)
 		{
-		tpnt = strdup_2(GTK_TCL_GET_STRING_RESULT(GLOBALS->interp));
+		tpnt = strdup_2(Tcl_GetStringResult (GLOBALS->interp));
 		}
 		else
 		{
@@ -2829,7 +2911,7 @@ if((GLOBALS->repscript_name) && (!GLOBALS->tcl_running))
 	  Tcl_Obj *stackTrace;
 
 	  fprintf(stderr, "GTKWAVE | %s\n",
-		  GTK_TCL_GET_STRING_RESULT(GLOBALS->interp));
+		  Tcl_GetStringResult (GLOBALS->interp));
 	  options = Tcl_GetReturnOptions(GLOBALS->interp, tclrc);
 	  key = Tcl_NewStringObj("-errorinfo", -1);
 	  Tcl_IncrRefCount(key);
@@ -2840,7 +2922,7 @@ if((GLOBALS->repscript_name) && (!GLOBALS->tcl_running))
 	  /* Do something with stackTrace */
 	}
 #else
-	if(tclrc != TCL_OK) { fprintf (stderr, "GTKWAVE | %s\n", GTK_TCL_GET_STRING_RESULT(GLOBALS->interp)); }
+	if(tclrc != TCL_OK) { fprintf (stderr, "GTKWAVE | %s\n", Tcl_GetStringResult (GLOBALS->interp)); }
 #endif
 
 	return(TRUE);
@@ -2929,7 +3011,7 @@ void make_tcl_interpreter(char *argv[])
 #ifndef WAVE_TCL_STUBIFY
   if (TCL_OK != Tcl_Init(GLOBALS->interp))
     {
-      fprintf(stderr, "GTKWAVE | Tcl_Init error: %s\n", GTK_TCL_GET_STRING_RESULT(GLOBALS->interp));
+      fprintf(stderr, "GTKWAVE | Tcl_Init error: %s\n", Tcl_GetStringResult (GLOBALS->interp));
       exit(EXIT_FAILURE);
     }
 #endif
@@ -3057,29 +3139,5 @@ return(strdup_2("--script TCL_ERROR : Tcl support not compiled into gtkwave\n"))
 
 
 #endif
-
-int gtkwavetcl_badNumArgs(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[], int expected)
-{
-        char *cmdName = Tcl_GetString(objv[0]);
-        Tcl_AppendResult(interp, "wrong # args: should be \"", cmdName, " ", NULL);
-        if(expected == 0)
-        {
-                Tcl_AppendResult(interp, "\"", NULL);
-        }
-        else
-        {
-                int i;
-                for(i = 1; i <= expected; i++)
-                {
-                        Tcl_AppendResult(interp, "arg", NULL);
-                        if(i < expected)
-                        {
-                                Tcl_AppendResult(interp, " ", NULL);
-                        }
-                }
-                Tcl_AppendResult(interp, "\"", NULL);
-        }
-        return(TCL_ERROR);
-}
 
 
