@@ -1,5 +1,13 @@
 #!/bin/bash
 brew bundle install
 ./autogen.sh
-./configure CXXFLAGS="-std=c++11" --enable-gtk3 --prefix=`brew --prefix` --enable-judy --enable-struct-pack "CFLAGS=-I`brew --prefix`/include -O2 -g" LDFLAGS=-L`brew --prefix`/lib --with-tcl=`brew --prefix tcl-tk@8`/lib --with-tk=`brew --prefix tcl-tk@8`/lib
+TCLTK_PREFIX=`brew --prefix tcl-tk@8`
+./configure \
+    --enable-stubs \
+    --prefix=`brew --prefix` \
+    --with-tcl=$TCLTK_PREFIX/lib \
+    --with-tk=$TCLTK_PREFIX/lib \
+    "CFLAGS=-I`brew --prefix`/include -I$TCLTK_PREFIX/include -g" \
+    "CXXFLAGS=-std=c++11" \
+    "LDFLAGS=-L`brew --prefix`/lib -L$TCLTK_PREFIX/lib" \
 make -j8
