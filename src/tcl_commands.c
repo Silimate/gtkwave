@@ -1564,6 +1564,37 @@ Tcl_SetObjResult(interp, aobj);
 return(TCL_OK);
 }
 
+static int gtkwavetcl_getHighlightedSignals(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+{
+if(objc == 1)
+	{
+	Tcl_Obj *list_obj = Tcl_NewListObj(0, NULL);
+	Trptr t = GLOBALS->traces.first;
+
+	while(t)
+		{
+		if(!(t->flags&(TR_BLANK|TR_ANALOG_BLANK_STRETCH)) && (t->flags&TR_HIGHLIGHT))
+			{
+			char *name = extractFullTraceName(t);
+			if(name)
+				{
+				Tcl_Obj *name_obj = Tcl_NewStringObj(name, -1);
+				Tcl_ListObjAppendElement(interp, list_obj, name_obj);
+				free_2(name);
+				}
+			}
+		t = t->t_next;
+		}
+
+	Tcl_SetObjResult(interp, list_obj);
+	}
+else
+	{
+	return(gtkwavetcl_badNumArgs(clientData, interp, objc, objv, 0));
+	}
+
+return(TCL_OK);
+}
 
 static int gtkwavetcl_setTraceHighlightFromIndex(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
@@ -2311,6 +2342,10 @@ tcl_cmdstruct gtkwave_commands[] =
 	{"showSignal",         			gtkwavetcl_showSignal},
 	{"signalChangeList",                    gtkwavetcl_signalChangeList},	/* changed from signal_change_list for consistency! */
 	{"unhighlightSignalsFromList",		gtkwavetcl_unhighlightSignalsFromList},
+
+	/* Silimate added commands */
+	{"getHighlightedSignals",			gtkwavetcl_getHighlightedSignals},
+	
    	{"", 					NULL} /* sentinel */
 	};
 
