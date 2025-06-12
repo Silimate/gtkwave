@@ -1,6 +1,6 @@
 #!/bin/bash
 brew bundle install
-brew reinstall --formula --build-from-source ./tcl-tk@8.rb
+# brew reinstall --formula --build-from-source ./tcl-tk@8.rb
 ./autogen.sh
 TCLTK_PREFIX=`brew --prefix tcl-tk@8`
 ./configure \
