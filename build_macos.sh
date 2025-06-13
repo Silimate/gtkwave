@@ -1,6 +1,19 @@
 #!/bin/bash
+
+# Install all other dependencies
 brew bundle install
-# brew reinstall --formula --build-from-source ./tcl-tk@8.rb
+
+# Reinstall tcl-tk without CoreFoundation if tclsh is linked to CoreFoundation
+if otool -L $(which tclsh) | grep 2503.1.0; then
+    brew reinstall --formula --build-from-source ./tcl-tk@8.rb
+fi
+
+# Reinstall gtk+3 to enable broadway backend (shared library) if broadwayd is not found
+if [[ ! -f `brew --prefix`/bin/broadwayd ]]; then
+    brew reinstall --formula --build-from-source ./gtk+3.rb
+fi
+
+# Build gtkwave
 ./autogen.sh
 TCLTK_PREFIX=`brew --prefix tcl-tk@8`
 ./configure \
