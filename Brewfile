@@ -1,3 +1,4 @@
+brew "automake"
 brew "desktop-file-utils"
 brew "shared-mime-info"
 brew "gobject-introspection"
