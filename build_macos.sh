@@ -7,6 +7,7 @@ brew bundle install
 ./autogen.sh
 TCLTK_PREFIX=`brew --prefix tcl-tk@8`
 ./configure \
+    --enable-fsdb \
     --enable-gtk3 \
     --prefix=`brew --prefix` \
     --with-tcl=$TCLTK_PREFIX/lib \
