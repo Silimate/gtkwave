@@ -21,8 +21,9 @@
 #ifdef __MINGW32__
 #include <windows.h>
 #else
-#if GTK_CHECK_VERSION(3,0,0)
+#ifdef GDK_WINDOWING_X11
 #include <gtk/gtkx.h>
+#include <gdk/gdkx.h>
 #endif
 #endif
 
@@ -1518,6 +1519,24 @@ if(GLOBALS->loaded_file_name && suffix_check(GLOBALS->loaded_file_name, "."EXT3L
 	{
 	opt_vcd = 1;
 	}
+#endif
+
+#ifdef WAVE_USE_XID
+    if (GLOBALS->socket_xid) {
+        gboolean is_x11_display = FALSE;
+#ifdef GDK_WINDOWING_X11
+        {
+            GdkDisplay *display = gdk_display_get_default();
+            if (GDK_IS_X11_DISPLAY(display)) {
+                is_x11_display = TRUE;
+            }
+        }
+#endif
+        if (!is_x11_display) {
+            fprintf(stderr, "GTKWAVE | Ignoring -X; GtkPlug only works on X11.\n");
+            GLOBALS->socket_xid = 0;
+        }
+    }
 #endif
 
 /* attempt to load a dump+save file if only a savefile is specified at the command line */
