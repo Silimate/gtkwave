@@ -1,0 +1,22 @@
+FROM centos:7
+
+# Copy the portable gtkwave build
+COPY --from=gtkwave-portable /output /output
+
+# Fix vault repo URLs
+RUN sed -i s/mirror.centos.org/vault.centos.org/g /etc/yum.repos.d/*.repo && \
+    sed -i s/^#.*baseurl=http/baseurl=http/g /etc/yum.repos.d/*.repo && \
+    sed -i s/^mirrorlist=http/#mirrorlist=http/g /etc/yum.repos.d/*.repo
+
+# Install Xvfb and basic dependencies
+RUN yum install -y xorg-x11-server-Xvfb && yum clean all
+
+# Set up environment
+ENV LD_LIBRARY_PATH=/output/lib
+ENV GDK_PIXBUF_MODULE_FILE=/output/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache
+ENV XDG_DATA_DIRS=/output/share
+ENV GTK_DATA_PREFIX=/output
+ENV FONTCONFIG_PATH=/output/etc/fonts
+ENV PATH=/output/bin:$PATH
+
+CMD ["/bin/bash"]

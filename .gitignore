@@ -2,6 +2,9 @@
 *.a
 /config.h
 
+# Portable build output
+/portable-build/
+
 # Binaries
 /src/gtkwave
 /src/twinwave
