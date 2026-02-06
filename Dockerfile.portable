@@ -553,6 +553,8 @@ RUN mkdir -p /usr/local/lib && \
 # Build GTKWave with GTK3 and Tcl/Tk enabled
 # Copy tcl.m4 to gtkwave source and regenerate configure to include Tcl macros
 RUN cd /gtkwave-src && \
+    echo "=== GTKWave source directory contents ===" && \
+    ls -la && \
     make distclean || true && \
     cp /usr/share/aclocal/tcl.m4 . 2>/dev/null || \
         curl -sLo tcl.m4 https://raw.githubusercontent.com/tcltk/tcl/core-8-6-branch/unix/tcl.m4 && \
@@ -574,6 +576,8 @@ RUN cd /gtkwave-src && \
     sed -i '/@GSETTINGS_RULES@/d' src/Makefile && \
     make -j$(nproc) V=1 && \
     make install && \
+    echo "=== Verifying gtkwave binary exists ===" && \
+    test -f ${PREFIX}/bin/gtkwave || (echo "ERROR: gtkwave binary not found!" && exit 1) && \
     echo "=== Verifying Tcl is linked ===" && \
     ldd ${PREFIX}/bin/gtkwave | grep -i tcl || echo "WARNING: Tcl not linked"
 
@@ -673,9 +677,16 @@ RUN find ${PREFIX}/bin -type f -exec patchelf --set-rpath '$ORIGIN/../lib' {} \;
 # Special handling for gdk-pixbuf loaders
 RUN find ${PREFIX}/lib/gdk-pixbuf-2.0 -name "*.so*" -type f -exec patchelf --set-rpath '$ORIGIN/../../..' {} \; 2>/dev/null || true
 
-# Verify no missing libraries
-RUN echo "=== Checking for missing libraries ===" && \
-    ldd ${PREFIX}/bin/gtkwave 2>&1 | grep -v "linux-vdso\|ld-linux" | head -50 || true
+# Verify gtkwave and Xvfb exist and check for missing libraries
+RUN echo "=== Final verification ===" && \
+    echo "Checking gtkwave binary..." && \
+    test -f ${PREFIX}/bin/gtkwave || (echo "ERROR: gtkwave binary not found!" && exit 1) && \
+    echo "Checking Xvfb binary..." && \
+    test -f ${PREFIX}/bin/Xvfb || (echo "ERROR: Xvfb binary not found!" && exit 1) && \
+    echo "=== Checking for missing libraries ===" && \
+    ldd ${PREFIX}/bin/gtkwave 2>&1 | grep -v "linux-vdso\|ld-linux" | head -50 && \
+    echo "=== Build artifacts in ${PREFIX}/bin ===" && \
+    ls -la ${PREFIX}/bin/
 
 # =============================================================================
 # Test Stage: Verify the build works on a fresh system

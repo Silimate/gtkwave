@@ -30,6 +30,22 @@ docker cp "${CONTAINER_ID}:/output/." "${OUTPUT_DIR}/"
 # Clean up container
 docker rm "${CONTAINER_ID}" > /dev/null
 
+# Verify critical binaries exist
+echo
+echo "Verifying extracted binaries..."
+if [ ! -f "${OUTPUT_DIR}/bin/gtkwave" ]; then
+    echo "ERROR: gtkwave binary not found in extracted bundle!"
+    echo "Contents of ${OUTPUT_DIR}/bin/:"
+    ls -la "${OUTPUT_DIR}/bin/" 2>/dev/null || echo "(directory does not exist)"
+    exit 1
+fi
+if [ ! -f "${OUTPUT_DIR}/bin/Xvfb" ]; then
+    echo "ERROR: Xvfb binary not found in extracted bundle!"
+    exit 1
+fi
+echo "  gtkwave: OK"
+echo "  Xvfb: OK"
+
 # Create a wrapper script for easy usage
 cat > "${OUTPUT_DIR}/run-gtkwave.sh" << 'WRAPPER'
 #!/bin/bash

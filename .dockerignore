@@ -1,0 +1,48 @@
+# Ignore portable build output
+portable-build/
+
+# Ignore build artifacts
+*.o
+*.a
+src/gtkwave
+src/twinwave
+src/helpers/evcd2vcd
+src/helpers/fst2vcd
+src/helpers/fstminer
+src/helpers/lxt2miner
+src/helpers/lxt2vcd
+src/helpers/shmidcat
+src/helpers/vcd2fst
+src/helpers/vcd2lxt
+src/helpers/vcd2lxt2
+src/helpers/vcd2vzt
+src/helpers/vzt2vcd
+src/helpers/vztminer
+contrib/rtlbrowse/rtlbrowse
+contrib/xml2stems/xml2stems
+
+# Ignore autotools generated files
+Makefile
+Makefile.in
+config.h
+config.h.in
+config.log
+config.status
+config.cache
+config.guess
+config.sub
+configure
+aclocal.m4
+autom4te.cache/
+compile
+depcomp
+install-sh
+missing
+stamp-h1
+ltmain.sh
+.deps/
+.dirstamp
+
+# Ignore git
+.git/
+.github/
