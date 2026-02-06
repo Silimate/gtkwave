@@ -551,16 +551,16 @@ RUN mkdir -p /usr/local/lib && \
     ln -sf ${PREFIX}/lib/tkConfig.sh /usr/local/lib/tkConfig.sh
 
 # Build GTKWave with GTK3 and Tcl/Tk enabled
-# Copy tcl.m4 to gtkwave source and regenerate configure to include Tcl macros
+# Run autogen.sh to generate configure and Makefile.in, then build
 RUN cd /gtkwave-src && \
     echo "=== GTKWave source directory contents ===" && \
     ls -la && \
-    make distclean || true && \
+    echo "=== Running autogen.sh to generate build files ===" && \
     cp /usr/share/aclocal/tcl.m4 . 2>/dev/null || \
         curl -sLo tcl.m4 https://raw.githubusercontent.com/tcltk/tcl/core-8-6-branch/unix/tcl.m4 && \
-    aclocal -I . --force && \
-    autoconf --force && \
-    automake --add-missing --foreign 2>/dev/null || true && \
+    ./autogen.sh && \
+    echo "=== Verifying Makefile.in was generated ===" && \
+    test -f Makefile.in || (echo "ERROR: Makefile.in not generated!" && exit 1) && \
     ./configure --prefix=${PREFIX} \
         --enable-gtk3 \
         --disable-mime-update \
