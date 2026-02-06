@@ -1,7 +1,7 @@
 # Ignore portable build output
 portable-build/
 
-# Ignore build artifacts
+# Ignore compiled binaries and objects
 *.o
 *.a
 src/gtkwave
@@ -21,27 +21,14 @@ src/helpers/vztminer
 contrib/rtlbrowse/rtlbrowse
 contrib/xml2stems/xml2stems
 
-# Ignore autotools generated files
-Makefile
-Makefile.in
-config.h
-config.h.in
+# Ignore autotools cache and status files (but NOT Makefile.in, configure, etc.)
+autom4te.cache/
 config.log
 config.status
 config.cache
-config.guess
-config.sub
-configure
-aclocal.m4
-autom4te.cache/
-compile
-depcomp
-install-sh
-missing
-stamp-h1
-ltmain.sh
 .deps/
 .dirstamp
+stamp-h1
 
 # Ignore git
 .git/
